@@ -4,3 +4,4 @@ host/
 host/*
 
 assets/
+.DS_Store
