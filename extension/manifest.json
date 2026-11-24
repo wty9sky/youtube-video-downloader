@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "YouTube 视频下载",
+  "version": "2.0.2",
+  "description": "勾选 YouTube 视频，按清晰度和声音选项在浏览器中下载。",
+  "minimum_chrome_version": "116",
+  "permissions": ["activeTab", "declarativeNetRequestWithHostAccess", "downloads", "offscreen", "storage"],
+  "host_permissions": ["https://www.youtube.com/*", "https://*.googlevideo.com/*"],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"
+  },
+  "background": { "service_worker": "worker.js", "type": "module" },
+  "action": { "default_popup": "popup.html" }
+}

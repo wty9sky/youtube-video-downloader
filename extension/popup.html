@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>YouTube 视频下载</title>
+  <link rel="stylesheet" href="popup.css">
+  <script type="module" src="popup.js"></script>
+</head>
+<body>
+  <header>
+    <span class="mark" aria-hidden="true">↓</span>
+    <div><h1>YouTube 视频下载</h1><p>以 MP4 保存到浏览器下载目录 / YouTube</p></div>
+  </header>
+  <main>
+    <form id="load">
+      <label for="url">视频或播放列表链接</label>
+      <div class="link-controls">
+        <input id="url" type="url" maxlength="2048" placeholder="https://www.youtube.com/…" required>
+        <button id="load-button" type="submit">加载视频列表</button>
+      </div>
+    </form>
+    <section id="status" data-phase="idle" aria-labelledby="queue-heading">
+      <div class="queue-heading">
+        <h2 id="queue-heading">视频列表</h2>
+        <p id="count" hidden></p>
+      </div>
+      <p id="queue-title" hidden></p>
+      <p id="message" role="status" aria-atomic="true">输入链接后加载视频列表。</p>
+      <div id="list-controls" hidden>
+        <label class="check"><input id="select-all" type="checkbox"> 全选</label>
+        <span id="selected-count"></span>
+      </div>
+      <ol id="videos" aria-label="视频及下载进度" tabindex="0" hidden></ol>
+      <div id="download-controls" hidden>
+        <label class="quality-field" for="quality">清晰度
+          <select id="quality"></select>
+        </label>
+        <label class="check"><input id="include-audio" type="checkbox" checked> 包含声音</label>
+        <label class="check"><input id="include-auto-captions" type="checkbox"> 包含 YouTube 自动字幕</label>
+        <button id="start-button" type="button" disabled>下载所选</button>
+        <button id="cancel-button" type="button" hidden>取消下载</button>
+      </div>
+    </section>
+  </main>
+  <template id="video-row">
+    <li>
+      <label class="video-select">
+        <input class="video-check" type="checkbox">
+        <span class="video-index" aria-hidden="true"></span>
+        <span class="video-title"></span>
+      </label>
+      <span class="video-status"></span>
+      <progress max="100" hidden></progress>
+      <span class="video-error" hidden></span>
+    </li>
+  </template>
+</body>
+</html>

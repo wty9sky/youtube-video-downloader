@@ -1,0 +1,74 @@
+name: Packages
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "要发布的版本标签，例如 v2.0.2"
+        required: true
+        type: string
+
+concurrency:
+  group: packages-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test
+        run: npm test
+
+      - name: Build extension
+        run: npm run build
+
+      - name: Package extension
+        run: npm run package
+
+      - name: Install ORAS
+        env:
+          ORAS_VERSION: 1.2.0
+        run: |
+          curl -fsSL -o oras.tar.gz "https://github.com/oras-project/oras/releases/download/v${ORAS_VERSION}/oras_${ORAS_VERSION}_linux_amd64.tar.gz"
+          tar -xzf oras.tar.gz
+          sudo install -m 0755 oras /usr/local/bin/oras
+          rm -f oras.tar.gz oras
+
+      - name: Push extension to GitHub Packages
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+        run: |
+          version=$(node -p "JSON.parse(require('node:fs').readFileSync('extension/manifest.json', 'utf8')).version")
+          if [ "$TAG" != "v$version" ]; then
+            echo "Tag $TAG does not match manifest version $version"
+            exit 1
+          fi
+          archive="dist/youtube-video-downloader-v$version.zip"
+          test -f "$archive" || { echo "Missing $archive"; exit 1; }
+
+          package="ghcr.io/${GITHUB_REPOSITORY,,}:v$version"
+          printf '%s' "$GITHUB_TOKEN" | oras login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          oras push "$package" \
+            --annotation "org.opencontainers.image.title=youtube-video-downloader-v$version.zip" \
+            "$archive:application/zip"
+          echo "Published $package"
